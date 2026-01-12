@@ -1,0 +1,22 @@
+name-template: 'AGENTS Guidelines v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: 'Breaking Changes'
+    labels: ['breaking']
+  - title: 'New Rules'
+    labels: ['feature']
+  - title: 'Improvements'
+    labels: ['enhancement']
+  - title: 'Fixes'
+    labels: ['fix']
+
+version-resolver:
+  major:
+    labels: ['breaking']
+  minor:
+    labels: ['feature']
+  patch:
+    labels: ['fix', 'enhancement']
+
+change-template: '- $TITLE (#$NUMBER)'
