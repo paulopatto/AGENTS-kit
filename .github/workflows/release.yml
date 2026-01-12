@@ -1,0 +1,51 @@
+name: Release AGENTS Guidelines
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    if: contains(github.event.head_commit.message, 'release:')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version from Release Drafter
+        id: version
+        run: |
+          VERSION=$(gh release view --json tagName -q .tagName || echo "v1.0")
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update AGENTS.md headers
+        run: |
+          ./scripts/update_agents_headers.sh v${{ steps.version.outputs.version }}
+
+      - name: Commit updated headers
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add agents/*.md
+          git commit -m "chore: update AGENTS headers for v${{ steps.version.outputs.version }}"
+
+      - name: Create Git tags
+        run: |
+          git tag v${{ steps.version.outputs.version }}-staff
+          git tag v${{ steps.version.outputs.version }}-senior
+          git tag v${{ steps.version.outputs.version }}-pleno
+          git push origin --tags
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          generate_release_notes: true
